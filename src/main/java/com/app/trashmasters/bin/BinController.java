@@ -1,10 +1,16 @@
 package com.app.trashmasters.bin;
 
+import com.app.trashmasters.bin.dto.BinCreateRequest;
+import com.app.trashmasters.bin.dto.BinFlagRequest;
+import com.app.trashmasters.bin.dto.PredictionRequest;
+import com.app.trashmasters.driver.model.Driver;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import com.app.trashmasters.bin.model.Bin;
 
+import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
@@ -26,19 +32,41 @@ public class BinController {
     }
 
     // POST - Create a new Bin
-    @PostMapping
-    public ResponseEntity<Bin> createBin(@RequestBody Bin bin) {
-        return ResponseEntity.ok(binService.createBin(bin));
+    @PostMapping("/createBin")
+    public ResponseEntity<Bin> createBin(@RequestBody BinCreateRequest request) {
+
+        Bin savedBin = binService.createBin(request);
+
+        return new ResponseEntity<>(savedBin, HttpStatus.CREATED);
+    }
+
+
+    // PUT - Update ONLY the prediction for a specific bin
+    @PutMapping("/{id}/prediction")
+    public ResponseEntity<Bin> updatePrediction(
+            @PathVariable String id,
+            @RequestBody PredictionRequest request) {
+
+        // Use the time provided, or default to 4 hours from now if missing
+        LocalDateTime targetTime = (request.getTime() != null)
+                ? request.getTime()
+                : LocalDateTime.now().plusHours(4);
+
+        return ResponseEntity.ok(
+                binService.updateBinPrediction(id, request.getLevel(), targetTime)
+        );
     }
 
     // PUT - Flag an Issue
     @PutMapping("/{id}/flag")
-    public ResponseEntity<Bin> flagBinIssue(@PathVariable String id, @RequestBody String issue) {
-        Bin updatedBin = binService.flagBinIssue(id, issue);
-        return ResponseEntity.ok(updatedBin);
+    public ResponseEntity<Bin> flagBinIssue(
+            @PathVariable String id,
+            @RequestBody BinFlagRequest request) {
+
+        return ResponseEntity.ok(binService.flagBinIssue(id, request.getIssue()));
     }
 
-    // GET - Get only full bins (Useful for your Routing later)
+    // GET - Get only full bins
     @GetMapping("/full")
     public ResponseEntity<List<Bin>> getFullBins() {
         //TODO Hardcoding 70% as the threshold for now
