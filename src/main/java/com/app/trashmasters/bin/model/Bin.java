@@ -6,6 +6,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 
 @Data
@@ -23,8 +24,12 @@ public class Bin {
     private double longitude;
 
     // The "Real" Reality (Sensor Data)
-    private int fillLevel;       // 0 to 100
+    private double fillLevel;
+    private Instant lastUpdated;
+    private int depthCm; // 0 to 100
     private String sensorId;     // e.g., "IoT-X99"
+
+    private BinStatus status;
 
     // The "Predicted" Future (Machine Learning Data)
     // We use Integer (wrapper) so it can be null if no prediction exists
