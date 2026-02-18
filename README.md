@@ -5,6 +5,7 @@ The backend service for **Trash Masters**, an intelligent waste management platf
 Built with **Java Spring Boot** and **MongoDB**, this system transitions waste management from a static schedule to a dynamic, demand-based model.
 
 FRONT END REPO: https://github.com/gkingcool/trash-master-frontend
+
 HARDWARE REPO: 
 
 ## 🚀 Key Features
