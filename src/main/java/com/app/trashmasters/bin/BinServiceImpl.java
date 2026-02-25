@@ -1,11 +1,13 @@
 package com.app.trashmasters.bin;
 
 import com.app.trashmasters.bin.dto.BinCreateRequest;
+import com.app.trashmasters.bin.model.BinStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.app.trashmasters.bin.model.Bin;
 
 
+import java.time.Instant;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -29,11 +31,14 @@ public class BinServiceImpl implements BinService {
         Bin bin = new Bin();
 
         // Manual Mapping (Safest and clearest)
+        bin.setBinId(request.getBinId());
         bin.setLocationName(request.getLocationName());
         bin.setLatitude(request.getLatitude());
         bin.setLongitude(request.getLongitude());
+        bin.setDepthCm(request.getDepthCm());
         bin.setFillLevel(request.getFillLevel());
         bin.setSensorId(request.getSensorId());
+        bin.setLastUpdated(Instant.now());
 
         // Handle optional prediction data
         if (request.getPredictedFillLevel() != null) {
@@ -48,18 +53,38 @@ public class BinServiceImpl implements BinService {
     }
 
     @Override
-    public Bin getBinById(String id) {
-        return binRepository.findById(id)
+    public Bin getBinByBinId(String id) {
+        return binRepository.findByBinId(id)
                 .orElseThrow(() -> new RuntimeException("Bin not found with id: " + id));
     }
 
     @Override
-    public Bin flagBinIssue(String id, String issueDescription) {
-        Bin bin = getBinById(id);
+    public Bin setFlag(String binId, boolean isFlagged, String issue) {
+        Bin bin = binRepository.findByBinId(binId)
+                .orElseThrow(() -> new RuntimeException("Bin not found"));
 
-        bin.setFlagged(true);
-        bin.setIssueDescription(issueDescription);
+        bin.setFlagged(isFlagged);
 
+        if (isFlagged) {
+            // If flagging: Save the issue and force status to MAINTENANCE
+            bin.setIssue(issue != null ? issue : "Manually flagged by Admin");
+            bin.setStatus(BinStatus.MAINTENANCE);
+        } else {
+            // If unflagging: Clear the issue and RECALCULATE the status
+            bin.setIssue(null);
+
+            // Smart Recovery Logic
+            double fill = (bin.getFillLevel() != null) ? bin.getFillLevel() : 0.0;
+            if (fill >= 90) {
+                bin.setStatus(BinStatus.CRITICAL);
+            } else if (fill >= 70) {
+                bin.setStatus(BinStatus.FULL);
+            } else {
+                bin.setStatus(BinStatus.NORMAL);
+            }
+        }
+
+        bin.setLastUpdated(Instant.now());
         return binRepository.save(bin);
     }
 
@@ -70,7 +95,7 @@ public class BinServiceImpl implements BinService {
 
     @Override
     public Bin updateBinPrediction(String id, Integer predictedLevel, LocalDateTime targetTime) {
-        Bin bin = getBinById(id); // Reuse our helper to find it first
+        Bin bin = getBinByBinId(id);
 
         bin.setPredictedFillLevel(predictedLevel);
         bin.setPredictionTargetTime(targetTime);

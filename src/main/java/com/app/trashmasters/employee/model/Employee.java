@@ -1,4 +1,4 @@
-package com.app.trashmasters.driver.model;
+package com.app.trashmasters.employee.model;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
@@ -7,17 +7,22 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
 
-@Data                  // Lombok: Generates getters, setters, toString, etc.
-@NoArgsConstructor     // Lombok: Generates empty constructor (Required by Mongo)
-@AllArgsConstructor    // Lombok: Generates constructor with all arguments
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
 @Document(collection = "drivers") // Tells Mongo to save this in a "drivers" collection
-public class Driver {
+public class Employee {
 
     @Id // Maps this to the MongoDB "_id" field
     private String id;
 
+    @Indexed(unique = true)
+    private String employeeId; // The mandatory business ID (e.g., "DRV-789")
+
     private String firstName;
     private String lastName;
+
+    private UserRole role = UserRole.DRIVER;
 
     @Indexed(unique = true) // Ensures you can't have two drivers with the same email
     private String email;

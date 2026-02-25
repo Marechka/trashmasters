@@ -3,7 +3,6 @@ package com.app.trashmasters.bin;
 import com.app.trashmasters.bin.dto.BinCreateRequest;
 import com.app.trashmasters.bin.dto.BinFlagRequest;
 import com.app.trashmasters.bin.dto.PredictionRequest;
-import com.app.trashmasters.driver.model.Driver;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -34,6 +33,10 @@ public class BinController {
     // POST - Create a new Bin
     @PostMapping("/createBin")
     public ResponseEntity<Bin> createBin(@RequestBody BinCreateRequest request) {
+        // Basic validation: Make sure they actually sent an ID and Depth
+        if (request.getBinId() == null || request.getDepthCm() == null) {
+            return ResponseEntity.badRequest().build();
+        }
 
         Bin savedBin = binService.createBin(request);
 
@@ -63,7 +66,7 @@ public class BinController {
             @PathVariable String id,
             @RequestBody BinFlagRequest request) {
 
-        return ResponseEntity.ok(binService.flagBinIssue(id, request.getIssue()));
+        return ResponseEntity.ok(binService.setFlag(id, request.isFlagged(), request.getIssue()));
     }
 
     // GET - Get only full bins
