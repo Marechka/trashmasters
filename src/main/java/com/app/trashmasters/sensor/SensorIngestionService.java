@@ -21,17 +21,16 @@ public class SensorIngestionService {
     @Autowired private SensorReadingRepository historyRepository;
 
     // The Main Pipeline Method
-    @Transactional // Ensures all DB saves happen, or none do
+    @Transactional
     public void processSensorData(SensorDataRequest request) {
 
         // 1. Validate Sensor & Update Battery
-        Sensor sensor = sensorRepository.findById(request.getSensorId())
+        Sensor sensor = sensorRepository.findBySensorId(request.getSensorId())
                 .orElseThrow(() -> new RuntimeException("Unknown Sensor ID: " + request.getSensorId()));
 
         sensor.setBatteryLevel(request.getBattery());
         sensor.setLastUpdated(Instant.now());
 
-        // Check for low battery flag
         if (request.getBattery() < 15) {
             sensor.setStatus(SensorStatus.LOW_BATTERY);
         }
@@ -43,63 +42,54 @@ public class SensorIngestionService {
             return;
         }
 
-        // 3. Fetch Bin & Calculate Fullness
-        Bin bin = binRepository.findById(sensor.getBinId())
-                .orElseThrow(() -> new RuntimeException("Bin not found"));
+        // 3. Fetch Bin Using the Custom Business ID
+        Bin bin = binRepository.findByBinId(sensor.getBinId())
+                .orElseThrow(() -> new RuntimeException("Bin not found with custom ID: " + sensor.getBinId()));
 
-        double depth = bin.getDepthCm(); // e.g., 100cm
-        double rawDistance = request.getDistanceCm(); // e.g., 20cm
+        // 4. Calculate Fullness
+        double depth = bin.getDepthCm();
+        double rawDistance = request.getDistanceCm();
 
-        // Math: (100 - 20) / 100 = 0.80 (80%)
         double fillPercent = ((depth - rawDistance) / depth) * 100.0;
+        fillPercent = Math.max(0, Math.min(100, fillPercent)); // Clamp 0-100
 
-        // Clamp values (Sensor might act weird and read -5cm or 150cm)
-        fillPercent = Math.max(0, Math.min(100, fillPercent));
-
-        // 4. Update Bin "Live State" (For Dashboard)
+        // 5. Update Bin "Live State"
         bin.setFillLevel(fillPercent);
         bin.setLastUpdated(Instant.now());
 
         // Auto-Status Logic
-        if (fillPercent >= 90) bin.setStatus(BinStatus.CRITICAL); // Full!
-        else if (fillPercent >= 75) bin.setStatus(BinStatus.FULL); // Getting there
+        if (fillPercent >= 90) bin.setStatus(BinStatus.CRITICAL);
+        else if (fillPercent >= 70) bin.setStatus(BinStatus.FULL);
         else bin.setStatus(BinStatus.NORMAL);
 
-        binRepository.save(bin);
+        binRepository.save(bin); // MongoDB knows to update the existing doc because it has the hidden _id
 
-        // 5. Create Enriched History (For SageMaker)
+        // 6. Create Enriched History (For SageMaker)
         saveToHistory(sensor, bin, request, fillPercent);
     }
 
     private void saveToHistory(Sensor sensor, Bin bin, SensorDataRequest request, double fillPercent) {
         SensorReading reading = new SensorReading();
 
-        // Basic Info
-        reading.setSensorId(sensor.getAssignedId());
-        reading.setBinId(bin.getId());
+        reading.setSensorId(sensor.getSensorId());
+        reading.setBinId(bin.getBinId()); // Save the clean custom ID to history, not the Mongo ID
         reading.setRawDistance(request.getDistanceCm());
         reading.setCalculatedFillLevel(fillPercent);
         reading.setBatteryLevel(request.getBattery());
         reading.setTimestamp(Instant.now());
 
-        // --- ENRICHMENT (The "Smart" Part) ---
-        LocalDateTime now = LocalDateTime.now(); // Server Time
-
-        reading.setDayOfWeek(now.getDayOfWeek().getValue()); // 1-7
-        reading.setHourOfDay(now.getHour()); // 0-23
-
-        boolean isWeekend = (now.getDayOfWeek() == DayOfWeek.SATURDAY || now.getDayOfWeek() == DayOfWeek.SUNDAY);
-        reading.setIsWeekend(isWeekend);
-
-        // Mock Weather Logic (Replace with API call later if you have time)
+        // Enrichment
+        LocalDateTime now = LocalDateTime.now();
+        reading.setDayOfWeek(now.getDayOfWeek().getValue());
+        reading.setHourOfDay(now.getHour());
+        reading.setIsWeekend(now.getDayOfWeek() == DayOfWeek.SATURDAY || now.getDayOfWeek() == DayOfWeek.SUNDAY);
         reading.setTemperatureF(mockTemperature(now.getMonthValue()));
-        reading.setIsHoliday(false); // Default to false for now
+        reading.setIsHoliday(false);
 
         historyRepository.save(reading);
     }
 
     private Double mockTemperature(int month) {
-        // Simple heuristic: Summer is hot, Winter is cold
         if (month >= 5 && month <= 9) return 85.0 + (Math.random() * 10);
         return 55.0 + (Math.random() * 10);
     }

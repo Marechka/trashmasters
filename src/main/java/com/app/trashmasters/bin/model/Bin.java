@@ -1,6 +1,7 @@
 package com.app.trashmasters.bin.model;
 
 import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -17,6 +18,9 @@ public class Bin {
     @Id
     private String id;
 
+    @Indexed(unique = true)
+    private String binId; // The physical label/asset tag (e.g., "BIN-101")
+
     private String locationName; // e.g., "Bellevue Park - North"
 
     // Geo-coordinates (Crucial for your Route Generator)
@@ -24,7 +28,7 @@ public class Bin {
     private double longitude;
 
     // The "Real" Reality (Sensor Data)
-    private double fillLevel;
+    private Double fillLevel;
     private Instant lastUpdated;
     private int depthCm; // 0 to 100
     private String sensorId;     // e.g., "IoT-X99"
@@ -40,5 +44,5 @@ public class Bin {
 
     // Maintenance Status
     private boolean isFlagged;   // True if "Lid Broken" etc.
-    private String issueDescription; // "Lid Broken", "Sensor Offline"
+    private String issue; // "Lid Broken", "Sensor Offline"
 }

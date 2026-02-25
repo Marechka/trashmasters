@@ -2,6 +2,7 @@ package com.app.trashmasters.sensor;
 
 import com.app.trashmasters.sensor.dto.SensorDataRequest;
 import com.app.trashmasters.sensor.dto.SensorFlagRequest;
+import com.app.trashmasters.sensor.dto.SensorRegistrationRequest;
 import com.app.trashmasters.sensor.model.SensorStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -22,23 +23,22 @@ public class SensorController {
     private SensorIngestionService ingestionService;
 
     // GET all
-    @GetMapping
+    @GetMapping("/getAll")
     public List<Sensor> getAll() {
         return sensorService.getAllSensors();
     }
 
     // POST - Register new hardware
-    @PostMapping
-    public ResponseEntity<Sensor> register(@RequestBody Map<String, String> payload) {
-        String hardwareId = payload.get("assignedId");
-        return ResponseEntity.ok(sensorService.registerSensor(hardwareId));
+    @PostMapping("/registerSensor")
+    public ResponseEntity<Sensor> register(@RequestBody SensorRegistrationRequest request) {
+        return ResponseEntity.ok(sensorService.registerSensor(request));
     }
 
     // DELETE
-    @DeleteMapping("/{id}")
-    public ResponseEntity<Void> delete(@PathVariable String id) {
+    @DeleteMapping("/{id}/remove")
+    public ResponseEntity<String> delete(@PathVariable String id) {
         sensorService.deleteSensor(id);
-        return ResponseEntity.noContent().build();
+        return ResponseEntity.ok("Sensor_with_id_" + id + "_was_removed_successfully");
     }
 
     // PUT - Heartbeat (Battery update)
