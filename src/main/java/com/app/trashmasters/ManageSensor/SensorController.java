@@ -1,9 +1,9 @@
-package com.app.trashmasters.sensor;
+package com.app.trashmasters.Sensor;
 
-import com.app.trashmasters.sensor.dto.SensorDataRequest;
-import com.app.trashmasters.sensor.dto.SensorFlagRequest;
-import com.app.trashmasters.sensor.dto.SensorRegistrationRequest;
-import com.app.trashmasters.sensor.model.SensorStatus;
+import com.app.trashmasters.Sensor.dto.SensorDataRequest;
+import com.app.trashmasters.Sensor.dto.SensorFlagRequest;
+import com.app.trashmasters.Sensor.dto.SensorRegistrationRequest;
+import com.app.trashmasters.Sensor.model.SensorStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;

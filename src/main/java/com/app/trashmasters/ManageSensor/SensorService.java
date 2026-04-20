@@ -1,8 +1,8 @@
-package com.app.trashmasters.sensor;
+package com.app.trashmasters.Sensor;
 
 
-import com.app.trashmasters.sensor.dto.SensorRegistrationRequest;
-import com.app.trashmasters.sensor.model.SensorStatus;
+import com.app.trashmasters.Sensor.dto.SensorRegistrationRequest;
+import com.app.trashmasters.Sensor.model.SensorStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.dao.DuplicateKeyException;
 import org.springframework.stereotype.Service;

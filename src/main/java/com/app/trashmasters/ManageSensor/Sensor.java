@@ -1,6 +1,6 @@
-package com.app.trashmasters.sensor;
+package com.app.trashmasters.Sensor;
 
-import com.app.trashmasters.sensor.model.SensorStatus;
+import com.app.trashmasters.Sensor.model.SensorStatus;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;

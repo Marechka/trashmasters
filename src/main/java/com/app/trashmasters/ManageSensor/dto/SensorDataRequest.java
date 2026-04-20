@@ -1,4 +1,4 @@
-package com.app.trashmasters.sensor.dto;
+package com.app.trashmasters.Sensor.dto;
 
 import lombok.Data;
 
