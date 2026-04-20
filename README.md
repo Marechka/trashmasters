@@ -8,6 +8,8 @@ Built with **Java Spring Boot** and **MongoDB**, this system transitions waste m
 
 **HARDWARE REPO:** https://github.com/Berke2Can/SmartWaste-Firmware-Hardwarev
 
+**SWAGGER:** http://localhost:8080/swagger-ui/index.html
+
 ## 🚀 Key Features
 
 * **RESTful API:** Robust endpoints for managing Bins, Drivers, and Routes.
