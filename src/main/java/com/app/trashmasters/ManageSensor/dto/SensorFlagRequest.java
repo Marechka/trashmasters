@@ -1,9 +1,12 @@
-package com.app.trashmasters.Sensor.dto;
+package com.app.trashmasters.ManageSensor.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 @Data
 public class SensorFlagRequest {
-    private boolean flagged; // true = flag it, false = unflag it
-    private String reason;   // Optional context
+    @Schema(example = "true")
+    private boolean flagged;
+    @Schema(example = "No readings for 2 days")
+    private String reason;
 }

@@ -10,8 +10,10 @@ import java.util.List;
 public interface BinService {
     List<Bin> getAllBins();
     Bin createBin(BinCreateRequest request);
-    Bin updateBinPrediction(String id, Integer predictedLevel, LocalDateTime targetTime);
+//    Bin updateBinPrediction(String id, Integer predictedLevel, LocalDateTime targetTime);
     Bin getBinByBinId(String id);
     Bin setFlag(String binId, boolean isFlagged, String issueDescription);
     List<Bin> getFullBins(int threshold); // Future-proofing for your route generator
+
+    void deleteBin(String binId);
 }

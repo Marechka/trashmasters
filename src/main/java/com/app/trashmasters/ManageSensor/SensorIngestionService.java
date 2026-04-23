@@ -1,12 +1,12 @@
-package com.app.trashmasters.Sensor;
+package com.app.trashmasters.ManageSensor;
 
 
 import com.app.trashmasters.bin.BinRepository;
 import com.app.trashmasters.bin.model.Bin;
 import com.app.trashmasters.bin.model.BinStatus;
-import com.app.trashmasters.Sensor.dto.SensorDataRequest;
-import com.app.trashmasters.Sensor.model.SensorReading;
-import com.app.trashmasters.Sensor.model.SensorStatus;
+import com.app.trashmasters.ManageSensor.dto.SensorDataRequest;
+import com.app.trashmasters.ManageSensor.model.SensorReading;
+import com.app.trashmasters.ManageSensor.model.SensorStatus;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

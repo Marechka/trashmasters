@@ -2,6 +2,7 @@ package com.app.trashmasters.bin;
 
 import com.app.trashmasters.bin.dto.BinCreateRequest;
 import com.app.trashmasters.bin.model.BinStatus;
+import com.app.trashmasters.bin.model.BinZone;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import com.app.trashmasters.bin.model.Bin;
@@ -30,24 +31,40 @@ public class BinServiceImpl implements BinService {
     public Bin createBin(BinCreateRequest request) {
         Bin bin = new Bin();
 
-        // Manual Mapping (Safest and clearest)
         bin.setBinId(request.getBinId());
         bin.setLocationName(request.getLocationName());
-        bin.setLatitude(request.getLatitude());
-        bin.setLongitude(request.getLongitude());
+        bin.setLocation(request.getLocation());
         bin.setDepthCm(request.getDepthCm());
-        bin.setFillLevel(request.getFillLevel());
+        // Validate fill level (must be percent 0..100). Sensor ingestion will clamp values;
+        // for manual create/update we enforce strict validation to avoid bad data.
+        if (request.getFillLevel() != null) {
+            double fl = request.getFillLevel();
+            if (fl < 0.0 || fl > 100.0) {
+                throw new IllegalArgumentException("fillLevel must be between 0 and 100 (percent). Provided: " + fl);
+            }
+            bin.setFillLevel(fl);
+        } else {
+            bin.setFillLevel(0.0);
+        }
         bin.setSensorId(request.getSensorId());
         bin.setLastUpdated(Instant.now());
+        bin.setCapacityYards(request.getCapacityYards());
 
-        // Handle optional prediction data
-        if (request.getPredictedFillLevel() != null) {
-            bin.setPredictedFillLevel(request.getPredictedFillLevel());
-            bin.setPredictionTargetTime(request.getPredictionTargetTime());
+        // Zone: default to PUBLIC if not provided
+        bin.setZone(request.getZone() != null ? request.getZone() : BinZone.PUBLIC);
+
+        // Status: auto-calculate from fill level if not explicitly set
+        if (request.getStatus() != null) {
+            bin.setStatus(BinStatus.valueOf(request.getStatus()));
+        } else {
+            double fill = (request.getFillLevel() != null) ? request.getFillLevel() : 0.0;
+            if (fill >= 90) bin.setStatus(BinStatus.CRITICAL);
+            else if (fill >= 70) bin.setStatus(BinStatus.FULL);
+            else bin.setStatus(BinStatus.NORMAL);
         }
 
-        // Default values for new bins
         bin.setFlagged(false);
+        bin.setDaysOverdue(0);
 
         return binRepository.save(bin);
     }
@@ -94,12 +111,18 @@ public class BinServiceImpl implements BinService {
     }
 
     @Override
-    public Bin updateBinPrediction(String id, Integer predictedLevel, LocalDateTime targetTime) {
-        Bin bin = getBinByBinId(id);
-
-        bin.setPredictedFillLevel(predictedLevel);
-        bin.setPredictionTargetTime(targetTime);
-
-        return binRepository.save(bin); // This updates the existing document
+    public void deleteBin(String id) {
+        Bin bin = getBinByBinId(id); // Check if exists first
+        binRepository.delete(bin);
     }
+
+//    @Override
+//    public Bin updateBinPrediction(String id, Integer predictedLevel, LocalDateTime targetTime) {
+//        Bin bin = getBinByBinId(id);
+//
+//        bin.setPredictedFillLevel(predictedLevel);
+//        bin.setPredictionTargetTime(targetTime);
+//
+//        return binRepository.save(bin); // This updates the existing document
+//    }
 }

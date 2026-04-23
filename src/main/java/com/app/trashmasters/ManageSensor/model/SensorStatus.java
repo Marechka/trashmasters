@@ -1,4 +1,4 @@
-package com.app.trashmasters.Sensor.model;
+package com.app.trashmasters.ManageSensor.model;
 
 public enum SensorStatus {
     ACTIVE,

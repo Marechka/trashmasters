@@ -1,6 +1,7 @@
-package com.app.trashmasters.Sensor;
+package com.app.trashmasters.ManageSensor;
 
-import com.app.trashmasters.Sensor.model.SensorStatus;
+import com.app.trashmasters.ManageSensor.model.SensorStatus;
+import io.swagger.v3.oas.annotations.media.Schema;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
@@ -12,20 +13,27 @@ import java.time.Instant;
 public class Sensor {
 
     @Id
-    private String id; //MongoId
+    @Schema(example = "69aca61149850123b5131380")
+    private String id;
 
-    @Indexed(unique = true) // The Hardware Serial Number (e.g., "SENSOR-X99")
+    @Indexed(unique = true)
+    @Schema(example = "SENSOR-X99")
     private String sensorId;
 
-    private String binId;      // The Bin this is currently attached to (nullable)
-    private Integer batteryLevel; // 0 to 100
+    @Schema(example = "BEL-BIN-001")
+    private String binId;
+    @Schema(example = "96")
+    private Integer batteryLevel;
+    @Schema(example = "ACTIVE")
     private SensorStatus status;
+    @Schema(example = "2026-03-07T22:26:23.548Z")
     private Instant lastUpdated;
 
-    private Boolean isFlagged = false; // Default to false
-    private String flagReason;         // Context (optional)
+    @Schema(example = "true")
+    private Boolean isFlagged = false;
+    @Schema(example = "No readings for 2 days")
+    private String flagReason;
 
-    // Constructor for quick creation
     public Sensor(String sensorId) {
         this.sensorId = sensorId;
         this.status = SensorStatus.INACTIVE;
