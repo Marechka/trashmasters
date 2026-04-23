@@ -1,10 +1,14 @@
-package com.app.trashmasters.Sensor.dto;
+package com.app.trashmasters.ManageSensor.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import lombok.Data;
 
 @Data
 public class SensorDataRequest {
-    private String sensorId;   // e.g., "ESP32-MAC-A1"
-    private Double distanceCm; // Raw distance from sensor
-    private Integer battery;   // 0-100
+    @Schema(example = "SENSOR-X99")
+    private String sensorId;
+    @Schema(example = "45.5", description = "Raw ultrasonic distance from sensor to trash surface in cm")
+    private Double distanceCm;
+    @Schema(example = "88")
+    private Integer battery;
 }
