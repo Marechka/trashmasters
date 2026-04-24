@@ -3,18 +3,18 @@ package com.app.trashmasters.bin;
 import com.app.trashmasters.bin.dto.BinCreateRequest;
 import com.app.trashmasters.bin.dto.BinFlagRequest;
 import com.app.trashmasters.bin.dto.PredictionRequest;
+import com.app.trashmasters.bin.model.Bin;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
-import com.app.trashmasters.bin.model.Bin;
 
 import java.time.LocalDateTime;
 import java.util.List;
 
 @RestController
 @RequestMapping("/api/bins")
-@CrossOrigin(origins = "http://localhost:3000")
+@CrossOrigin(origins = {"http://localhost:3000", "http://localhost:5173"})
 public class BinController {
 
     private final BinService binService;
@@ -22,6 +22,16 @@ public class BinController {
     @Autowired
     public BinController(BinService binService) {
         this.binService = binService;
+    }
+
+    @GetMapping("/{id}")
+    public ResponseEntity<Bin> getBinById(@PathVariable String id) {
+        try {
+            Bin bin = binService.getBinById(id);
+            return ResponseEntity.ok(bin);
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
     }
 
     // GET all bins
@@ -74,5 +84,27 @@ public class BinController {
     public ResponseEntity<List<Bin>> getFullBins() {
         //TODO Hardcoding 70% as the threshold for now
         return ResponseEntity.ok(binService.getFullBins(70));
+    }
+
+    @PutMapping("/{id}")
+    public ResponseEntity<Bin> updateBin(
+            @PathVariable String id,
+            @RequestBody BinCreateRequest request) {
+        try {
+            Bin updatedBin = binService.updateBin(id, request);
+            return ResponseEntity.ok(updatedBin);
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
+    }
+
+    @DeleteMapping("/{id}")
+    public ResponseEntity<Void> deleteBin(@PathVariable String id) {
+        try {
+            binService.deleteBin(id);
+            return ResponseEntity.noContent().build();
+        } catch (RuntimeException e) {
+            return ResponseEntity.notFound().build();
+        }
     }
 }

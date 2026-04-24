@@ -1,11 +1,13 @@
+// src/main/java/com/app/trashmasters/bin/BinServiceImpl.java
 package com.app.trashmasters.bin;
 
 import com.app.trashmasters.bin.dto.BinCreateRequest;
+import com.app.trashmasters.bin.model.Bin;
 import com.app.trashmasters.bin.model.BinStatus;
+import com.app.trashmasters.notification.NotificationService;
+import com.app.trashmasters.notification.model.NotificationType;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import com.app.trashmasters.bin.model.Bin;
-
 
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -15,6 +17,10 @@ import java.util.List;
 public class BinServiceImpl implements BinService {
 
     private final BinRepository binRepository;
+
+    // ✅ ADD THIS: Notification Service
+    @Autowired
+    private NotificationService notificationService;
 
     @Autowired
     public BinServiceImpl(BinRepository binRepository) {
@@ -59,6 +65,12 @@ public class BinServiceImpl implements BinService {
     }
 
     @Override
+    public Bin getBinById(String id) {
+        return binRepository.findById(id)
+                .orElseThrow(() -> new RuntimeException("Bin not found with id: " + id));
+    }
+
+    @Override
     public Bin setFlag(String binId, boolean isFlagged, String issue) {
         Bin bin = binRepository.findByBinId(binId)
                 .orElseThrow(() -> new RuntimeException("Bin not found"));
@@ -69,6 +81,14 @@ public class BinServiceImpl implements BinService {
             // If flagging: Save the issue and force status to MAINTENANCE
             bin.setIssue(issue != null ? issue : "Manually flagged by Admin");
             bin.setStatus(BinStatus.MAINTENANCE);
+
+            // Create notification when admin flags a bin
+            notificationService.createBinNotification(
+                    binId,
+                    "🔧 Bin Flagged for Maintenance",
+                    "Bin " + binId + " has been flagged: " + bin.getIssue(),
+                    NotificationType.WARNING
+            );
         } else {
             // If unflagging: Clear the issue and RECALCULATE the status
             bin.setIssue(null);
@@ -82,6 +102,14 @@ public class BinServiceImpl implements BinService {
             } else {
                 bin.setStatus(BinStatus.NORMAL);
             }
+
+            // Create notification when admin unflags a bin
+            notificationService.createBinNotification(
+                    binId,
+                    "✅ Bin Maintenance Completed",
+                    "Bin " + binId + " has been unflagged and returned to service",
+                    NotificationType.SUCCESS
+            );
         }
 
         bin.setLastUpdated(Instant.now());
@@ -101,5 +129,35 @@ public class BinServiceImpl implements BinService {
         bin.setPredictionTargetTime(targetTime);
 
         return binRepository.save(bin); // This updates the existing document
+    }
+
+    @Override
+    public Bin updateBin(String id, BinCreateRequest request) {
+        Bin bin = binRepository.findByBinId(id)
+                .orElseThrow(() -> new RuntimeException("Bin not found with id: " + id));
+
+        // Update only the fields that can change (keep binId as identifier)
+        bin.setLocationName(request.getLocationName());
+        bin.setLatitude(request.getLatitude());
+        bin.setLongitude(request.getLongitude());
+        bin.setDepthCm(request.getDepthCm());
+        bin.setFillLevel(request.getFillLevel());
+        bin.setSensorId(request.getSensorId());
+        bin.setLastUpdated(Instant.now());
+
+        // Handle optional prediction data
+        if (request.getPredictedFillLevel() != null) {
+            bin.setPredictedFillLevel(request.getPredictedFillLevel());
+            bin.setPredictionTargetTime(request.getPredictionTargetTime());
+        }
+
+        return binRepository.save(bin);
+    }
+
+    @Override
+    public void deleteBin(String id) {
+        Bin bin = binRepository.findByBinId(id)
+                .orElseThrow(() -> new RuntimeException("Bin not found with id: " + id));
+        binRepository.delete(bin);
     }
 }

@@ -1,10 +1,11 @@
 package com.app.trashmasters.route;
 
-import org.springframework.data.annotation.Id;
-import org.springframework.data.mongodb.core.mapping.Document;
+import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
+import org.springframework.data.annotation.Id;
+import org.springframework.data.mongodb.core.mapping.Document;
+
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -16,16 +17,22 @@ public class Route {
     @Id
     private String id;
 
+    private String routeNumber;
     private String driverId;
+    private String driverName;
 
-    // The ordered list of stops (Bin IDs)
     private List<String> binIds;
+    private List<String> completedBinIds;
+    private Integer currentStopIndex;
 
-    // Status: "CREATED", "IN_PROGRESS", "COMPLETED"
-    private String status;
-
+    private String status;  // "CREATED", "IN_PROGRESS", "COMPLETED"
     private LocalDateTime createdAt;
+    private LocalDateTime completedAt;
 
-    // Calculated total stops
     private int totalStops;
+    private Double totalDistance;
+    private Integer estimatedTime;
+
+    // ✅ Track which generation session this route belongs to
+    private String generationSession;
 }

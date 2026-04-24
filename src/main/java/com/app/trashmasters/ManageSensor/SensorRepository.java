@@ -1,4 +1,4 @@
-package com.app.trashmasters.Sensor;
+package com.app.trashmasters.ManageSensor;
 
 import org.springframework.data.mongodb.repository.MongoRepository;
 import java.util.List;

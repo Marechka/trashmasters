@@ -1,2 +1,4 @@
-package com.app.trashmasters.GoogleApi;public class SmartRoutingService {
+package com.app.trashmasters.GoogleApi;
+
+public class SmartRoutingService {
 }

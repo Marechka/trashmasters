@@ -1,7 +1,7 @@
-package com.app.trashmasters.Sensor.dto;
+package com.app.trashmasters.ManageSensor.dto;
 
 
-import com.app.trashmasters.Sensor.model.SensorStatus;
+import com.app.trashmasters.ManageSensor.model.SensorStatus;
 import lombok.Data;
 
 @Data

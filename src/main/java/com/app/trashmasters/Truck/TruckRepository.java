@@ -1,2 +1,4 @@
-package com.app.trashmasters.Truck;public class TruckREpository {
+package com.app.trashmasters.Truck;
+
+public class TruckRepository {
 }

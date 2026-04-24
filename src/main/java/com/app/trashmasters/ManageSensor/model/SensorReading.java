@@ -1,4 +1,4 @@
-package com.app.trashmasters.Sensor.model;
+package com.app.trashmasters.ManageSensor.model;
 
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;

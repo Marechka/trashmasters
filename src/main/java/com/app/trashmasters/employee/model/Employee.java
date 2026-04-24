@@ -1,16 +1,16 @@
 package com.app.trashmasters.employee.model;
 
+import lombok.AllArgsConstructor;
+import lombok.Data;
+import lombok.NoArgsConstructor;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
-import lombok.Data;
-import lombok.NoArgsConstructor;
-import lombok.AllArgsConstructor;
 
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
-@Document(collection = "drivers") // Tells Mongo to save this in a "drivers" collection
+@Document(collection = "employees") // Tells Mongo to save this in a "drivers" collection
 public class Employee {
 
     @Id // Maps this to the MongoDB "_id" field
@@ -22,12 +22,14 @@ public class Employee {
     private String firstName;
     private String lastName;
 
-    private UserRole role = UserRole.DRIVER;
+    private UserRole role;;
 
     @Indexed(unique = true) // Ensures you can't have two drivers with the same email
     private String email;
 
     private String phone;
+
+    private String password;
 
     // --- Fields that exist in DB but NOT in the Request DTO ---
 

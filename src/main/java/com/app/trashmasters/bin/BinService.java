@@ -13,5 +13,8 @@ public interface BinService {
     Bin updateBinPrediction(String id, Integer predictedLevel, LocalDateTime targetTime);
     Bin getBinByBinId(String id);
     Bin setFlag(String binId, boolean isFlagged, String issueDescription);
-    List<Bin> getFullBins(int threshold); // Future-proofing for your route generator
+    List<Bin> getFullBins(int threshold);// Future-proofing for your route generator
+    Bin updateBin(String id, BinCreateRequest request);
+    void deleteBin(String id);
+    Bin getBinById(String id);
 }

@@ -1,2 +1,3 @@
-package com.app.trashmasters.Route;public class SingleRouteCompletionDTO {
+package com.app.trashmasters.route;
+public class SingleRouteCompletionDTO {
 }

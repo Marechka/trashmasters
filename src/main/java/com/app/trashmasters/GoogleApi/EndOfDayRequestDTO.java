@@ -1,2 +1,4 @@
-package com.app.trashmasters.GoogleApi;public class EndOfDayDTO {
+package com.app.trashmasters.GoogleApi;
+
+public class EndOfDayRequestDTO {
 }

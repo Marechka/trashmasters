@@ -1,7 +1,7 @@
 package com.app.trashmasters.employee.dto;
 
 import com.app.trashmasters.employee.model.UserRole;
-import lombok.*;
+import lombok.Data;
 
 @Data
 public class EmployeeRequest {
@@ -11,5 +11,6 @@ public class EmployeeRequest {
     private UserRole role;
     private String email;
     private String phone;
-
+    private String password;
+    private String status;
 }
