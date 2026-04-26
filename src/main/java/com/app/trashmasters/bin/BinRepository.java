@@ -2,6 +2,7 @@ package com.app.trashmasters.bin;
 
 
 import com.app.trashmasters.bin.model.Bin;
+import com.app.trashmasters.bin.model.BinZone;
 import org.springframework.data.mongodb.repository.MongoRepository;
 import org.springframework.stereotype.Repository;
 
@@ -14,4 +15,18 @@ public interface BinRepository extends MongoRepository<Bin, String> {
     List<Bin> findByFillLevelGreaterThan(double level);
 
     Optional<Bin> findByBinId(String binId);
+
+    List<Bin> findByZone(BinZone zone);
+
+    List<Bin> findByIsFlaggedTrue();
+
+    List<Bin> findByDaysOverdueGreaterThan(int days);
+
+
+    // Spring Boot automatically translates this method name into a MongoDB query!
+// It finds bins that are EITHER currently > 70% OR predicted to be > 90%
+//    List<Bin> findByCurrentFillLevelGreaterThanEqualOrPredictedFillLevelGreaterThanEqual(
+//            Double currentTarget,
+//            Double predictedTarget
+//    );
 }

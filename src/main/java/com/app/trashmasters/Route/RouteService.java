@@ -1,28 +1,27 @@
-package com.app.trashmasters.route;
+package com.app.trashmasters.Route;
 
+import java.time.LocalDate;
+import java.time.LocalTime;
 import java.util.List;
 
 public interface RouteService {
-    Route generateRouteForDriver(String driverId);
-    Route getCurrentRouteForDriver(String driverId);
+
+    // Core route generation
+    GenerateRoutesResponse generateRoutes(int numberOfTrucks, LocalDate routeDate, LocalTime startTime);
+
+    // Route lifecycle
+    void processEndOfDay(EndOfDayRequestDTO shiftReport);
+    void processSingleRouteCompletion(SingleRouteCompletionDTO request);
+    void processRealTimeBinSkip(String binId);
+
+    // Search / CRUD
+    List<Route> searchRoutes(RouteSearchRequest request);
     Route getRouteById(String id);
     Route completeRoute(String id);
     List<Route> getRoutesByDriver(String driverId);
-
-    // New methods
-    Route markBinAsCollected(String routeId, String binId);
-    Route markBinAsSkipped(String routeId, String binId);
-    Route reportBinIssue(String routeId, String binId, String issueDescription);
-
-    // ✅ Get all routes
+    List<Route> getRoutesByStatus(String status);
     List<Route> getAllRoutes();
 
-    // ✅ Generate routes for all drivers
-    List<Route> generateRoutesForAllDrivers(int numDrivers);
-
-    // ✅ NEW: Clear old uncompleted routes before generating new ones
-    void clearOldRoutes();
-
-    // ✅ NEW: Get latest route generation session
-    List<Route> getLatestRouteGeneration();
+    // Dashboard
+    DashboardDTO getDashboardSummary();
 }

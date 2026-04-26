@@ -7,7 +7,6 @@ import com.app.trashmasters.bin.model.BinStatus;
 import com.app.trashmasters.ManageSensor.dto.SensorDataRequest;
 import com.app.trashmasters.ManageSensor.model.SensorReading;
 import com.app.trashmasters.ManageSensor.model.SensorStatus;
-import com.app.trashmasters.ManageSensor.SensorReadingRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;

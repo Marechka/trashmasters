@@ -1,15 +1,14 @@
 package com.app.trashmasters.bin.model;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.index.Indexed;
 import org.springframework.data.mongodb.core.mapping.Document;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 import lombok.AllArgsConstructor;
+
 import java.time.Instant;
-import java.time.LocalDateTime;
-import java.time.temporal.ChronoUnit;
-import java.util.HashMap;
 import java.util.Map;
 
 @Data
@@ -18,65 +17,45 @@ import java.util.Map;
 @Document(collection = "bins")
 public class Bin {
     @Id
+    @Schema(example = "69aca60f49850123b513137b")
     private String id;
 
     @Indexed(unique = true)
-    private String binId; // The physical label/asset tag (e.g., "BIN-101")
+    @Schema(example = "BEL-BIN-023")
+    private String binId;
 
-    private String locationName; // e.g., "Bellevue Park - North"
+    @Schema(example = "Bellevue Park - North")
+    private String locationName;
 
-    // Geo-coordinates (Crucial for your Route Generator)
-    private double latitude;
-    private double longitude;
+    private Location location;
 
-    // The "Real" Reality (Sensor Data)
+    @Schema(example = "45.0", description = "Fill percent 0–100")
     private Double fillLevel;
+    @Schema(example = "2026-03-07T22:26:23.548Z")
     private Instant lastUpdated;
-    private int depthCm; // 0 to 100
-    private String sensorId;     // e.g., "IoT-X99"
+    @Schema(example = "120")
+    private int depthCm;
+    @Schema(example = "SENSOR-X99")
+    private String sensorId;
 
+    @Schema(example = "NORMAL")
     private BinStatus status;
 
-    // The "Predicted" Future (Machine Learning Data)
-    private Integer predictedFillLevel;
-    private LocalDateTime predictionTargetTime;
-
     private Map<Integer, Double> futurePredictions;
+    @Schema(example = "2026-03-08T20:26:09.970Z")
+    private Instant lastPredicted;
 
-    private BinZone zone;
+    @Schema(example = "0")
+    private Integer daysOverdue = 0;
 
-    private LocalDateTime lastCollected;
-
+    @Schema(example = "8")
     private Integer capacityYards;
 
-    // Maintenance Status
-    private boolean isFlagged;   // True if "Lid Broken" etc.
-    private String issue; // "Lid Broken", "Sensor Offline"
+    @Schema(example = "PUBLIC")
+    private BinZone zone = BinZone.PUBLIC;
 
-    public Map<Integer, Double> getFuturePredictions() {
-        if (futurePredictions == null) {
-            futurePredictions = new HashMap<>();
-        }
-        return futurePredictions;
-    }
-
-    public Integer getCapacityYards() {
-        return capacityYards != null ? capacityYards : (depthCm / 100 * 10); // Default calculation
-    }
-
-    public Integer getDaysOverdue() {
-        if (lastCollected == null) {
-            return 0; // Never collected, not overdue
-        }
-        long days = ChronoUnit.DAYS.between(lastCollected, LocalDateTime.now());
-        return days > 0 ? (int) days : 0;
-    }
-
-    public Location getLocation() {
-        return new Location(latitude, longitude);
-    }
-
-    public void setLastCollected(LocalDateTime now) {
-        this.lastCollected = now;
-    }
+    @Schema(example = "false")
+    private boolean isFlagged;
+    @Schema(example = "Lid broken")
+    private String issue;
 }

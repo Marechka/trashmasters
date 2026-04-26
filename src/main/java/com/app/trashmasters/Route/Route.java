@@ -1,11 +1,12 @@
-package com.app.trashmasters.route;
+package com.app.trashmasters.Route;
 
-import lombok.AllArgsConstructor;
-import lombok.Data;
-import lombok.NoArgsConstructor;
+import io.swagger.v3.oas.annotations.media.Schema;
 import org.springframework.data.annotation.Id;
 import org.springframework.data.mongodb.core.mapping.Document;
-
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -15,24 +16,26 @@ import java.util.List;
 @Document(collection = "routes")
 public class Route {
     @Id
+    @Schema(example = "69bcf10a22880000ab000001")
     private String id;
 
-    private String routeNumber;
+    @Schema(example = "DRV-003")
     private String driverId;
-    private String driverName;
+    @Schema(example = "TRK-002")
+    private String truckId;
 
+    @Schema(example = "2026-04-19", description = "The date this route is scheduled for")
+    private LocalDate routeDate;
+
+    @Schema(example = "[\"BEL-BIN-023\", \"BEL-BIN-007\", \"BEL-BIN-015\"]")
     private List<String> binIds;
-    private List<String> completedBinIds;
-    private Integer currentStopIndex;
 
-    private String status;  // "CREATED", "IN_PROGRESS", "COMPLETED"
+    @Schema(example = "CREATED", description = "CREATED, IN_PROGRESS, or COMPLETED")
+    private String status;
+
+    @Schema(example = "2026-04-19T07:00:00")
     private LocalDateTime createdAt;
-    private LocalDateTime completedAt;
 
+    @Schema(example = "12")
     private int totalStops;
-    private Double totalDistance;
-    private Integer estimatedTime;
-
-    // ✅ Track which generation session this route belongs to
-    private String generationSession;
 }

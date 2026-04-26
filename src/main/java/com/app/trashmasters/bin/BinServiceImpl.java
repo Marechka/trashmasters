@@ -1,13 +1,12 @@
-// src/main/java/com/app/trashmasters/bin/BinServiceImpl.java
 package com.app.trashmasters.bin;
 
 import com.app.trashmasters.bin.dto.BinCreateRequest;
-import com.app.trashmasters.bin.model.Bin;
 import com.app.trashmasters.bin.model.BinStatus;
-import com.app.trashmasters.notification.NotificationService;
-import com.app.trashmasters.notification.model.NotificationType;
+import com.app.trashmasters.bin.model.BinZone;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import com.app.trashmasters.bin.model.Bin;
+
 
 import java.time.Instant;
 import java.time.LocalDateTime;
@@ -17,10 +16,6 @@ import java.util.List;
 public class BinServiceImpl implements BinService {
 
     private final BinRepository binRepository;
-
-    // ✅ ADD THIS: Notification Service
-    @Autowired
-    private NotificationService notificationService;
 
     @Autowired
     public BinServiceImpl(BinRepository binRepository) {
@@ -36,24 +31,40 @@ public class BinServiceImpl implements BinService {
     public Bin createBin(BinCreateRequest request) {
         Bin bin = new Bin();
 
-        // Manual Mapping (Safest and clearest)
         bin.setBinId(request.getBinId());
         bin.setLocationName(request.getLocationName());
-        bin.setLatitude(request.getLatitude());
-        bin.setLongitude(request.getLongitude());
+        bin.setLocation(request.getLocation());
         bin.setDepthCm(request.getDepthCm());
-        bin.setFillLevel(request.getFillLevel());
+        // Validate fill level (must be percent 0..100). Sensor ingestion will clamp values;
+        // for manual create/update we enforce strict validation to avoid bad data.
+        if (request.getFillLevel() != null) {
+            double fl = request.getFillLevel();
+            if (fl < 0.0 || fl > 100.0) {
+                throw new IllegalArgumentException("fillLevel must be between 0 and 100 (percent). Provided: " + fl);
+            }
+            bin.setFillLevel(fl);
+        } else {
+            bin.setFillLevel(0.0);
+        }
         bin.setSensorId(request.getSensorId());
         bin.setLastUpdated(Instant.now());
+        bin.setCapacityYards(request.getCapacityYards());
 
-        // Handle optional prediction data
-        if (request.getPredictedFillLevel() != null) {
-            bin.setPredictedFillLevel(request.getPredictedFillLevel());
-            bin.setPredictionTargetTime(request.getPredictionTargetTime());
+        // Zone: default to PUBLIC if not provided
+        bin.setZone(request.getZone() != null ? request.getZone() : BinZone.PUBLIC);
+
+        // Status: auto-calculate from fill level if not explicitly set
+        if (request.getStatus() != null) {
+            bin.setStatus(BinStatus.valueOf(request.getStatus()));
+        } else {
+            double fill = (request.getFillLevel() != null) ? request.getFillLevel() : 0.0;
+            if (fill >= 90) bin.setStatus(BinStatus.CRITICAL);
+            else if (fill >= 70) bin.setStatus(BinStatus.FULL);
+            else bin.setStatus(BinStatus.NORMAL);
         }
 
-        // Default values for new bins
         bin.setFlagged(false);
+        bin.setDaysOverdue(0);
 
         return binRepository.save(bin);
     }
@@ -61,12 +72,6 @@ public class BinServiceImpl implements BinService {
     @Override
     public Bin getBinByBinId(String id) {
         return binRepository.findByBinId(id)
-                .orElseThrow(() -> new RuntimeException("Bin not found with id: " + id));
-    }
-
-    @Override
-    public Bin getBinById(String id) {
-        return binRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Bin not found with id: " + id));
     }
 
@@ -81,14 +86,6 @@ public class BinServiceImpl implements BinService {
             // If flagging: Save the issue and force status to MAINTENANCE
             bin.setIssue(issue != null ? issue : "Manually flagged by Admin");
             bin.setStatus(BinStatus.MAINTENANCE);
-
-            // Create notification when admin flags a bin
-            notificationService.createBinNotification(
-                    binId,
-                    "🔧 Bin Flagged for Maintenance",
-                    "Bin " + binId + " has been flagged: " + bin.getIssue(),
-                    NotificationType.WARNING
-            );
         } else {
             // If unflagging: Clear the issue and RECALCULATE the status
             bin.setIssue(null);
@@ -102,14 +99,6 @@ public class BinServiceImpl implements BinService {
             } else {
                 bin.setStatus(BinStatus.NORMAL);
             }
-
-            // Create notification when admin unflags a bin
-            notificationService.createBinNotification(
-                    binId,
-                    "✅ Bin Maintenance Completed",
-                    "Bin " + binId + " has been unflagged and returned to service",
-                    NotificationType.SUCCESS
-            );
         }
 
         bin.setLastUpdated(Instant.now());
@@ -122,42 +111,18 @@ public class BinServiceImpl implements BinService {
     }
 
     @Override
-    public Bin updateBinPrediction(String id, Integer predictedLevel, LocalDateTime targetTime) {
-        Bin bin = getBinByBinId(id);
-
-        bin.setPredictedFillLevel(predictedLevel);
-        bin.setPredictionTargetTime(targetTime);
-
-        return binRepository.save(bin); // This updates the existing document
-    }
-
-    @Override
-    public Bin updateBin(String id, BinCreateRequest request) {
-        Bin bin = binRepository.findByBinId(id)
-                .orElseThrow(() -> new RuntimeException("Bin not found with id: " + id));
-
-        // Update only the fields that can change (keep binId as identifier)
-        bin.setLocationName(request.getLocationName());
-        bin.setLatitude(request.getLatitude());
-        bin.setLongitude(request.getLongitude());
-        bin.setDepthCm(request.getDepthCm());
-        bin.setFillLevel(request.getFillLevel());
-        bin.setSensorId(request.getSensorId());
-        bin.setLastUpdated(Instant.now());
-
-        // Handle optional prediction data
-        if (request.getPredictedFillLevel() != null) {
-            bin.setPredictedFillLevel(request.getPredictedFillLevel());
-            bin.setPredictionTargetTime(request.getPredictionTargetTime());
-        }
-
-        return binRepository.save(bin);
-    }
-
-    @Override
     public void deleteBin(String id) {
-        Bin bin = binRepository.findByBinId(id)
-                .orElseThrow(() -> new RuntimeException("Bin not found with id: " + id));
+        Bin bin = getBinByBinId(id); // Check if exists first
         binRepository.delete(bin);
     }
+
+//    @Override
+//    public Bin updateBinPrediction(String id, Integer predictedLevel, LocalDateTime targetTime) {
+//        Bin bin = getBinByBinId(id);
+//
+//        bin.setPredictedFillLevel(predictedLevel);
+//        bin.setPredictionTargetTime(targetTime);
+//
+//        return binRepository.save(bin); // This updates the existing document
+//    }
 }

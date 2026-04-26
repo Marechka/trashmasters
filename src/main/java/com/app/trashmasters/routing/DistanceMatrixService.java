@@ -31,20 +31,20 @@ public class DistanceMatrixService {
 
     /**
      * Builds an NxN driving-time matrix (in minutes) for all locations.
-     * Node 0 = stationA, Node 1 = dumpB, Nodes 2+ = bins.
+     * Node 0 = stationA, Nodes 1+ = bins.
+     * Dump is NOT included — dump trips are handled by post-processing.
      * Uses Mapbox Directions Matrix API with chunking for >25 locations.
      */
-    public long[][] calculateTimeMatrix(Location stationA, Location dumpB, List<Location> binLocations) {
+    public long[][] calculateTimeMatrix(Location stationA, List<Location> binLocations) {
 
-        int totalNodes = binLocations.size() + 2;
+        int totalNodes = binLocations.size() + 1; // station + bins (no dump)
         String[] allAddresses = new String[totalNodes];
 
         // Mapbox requires: longitude,latitude
         allAddresses[0] = stationA.getLon() + "," + stationA.getLat();
-        allAddresses[1] = dumpB.getLon() + "," + dumpB.getLat();
 
         for (int i = 0; i < binLocations.size(); i++) {
-            allAddresses[i + 2] = binLocations.get(i).getLon() + "," + binLocations.get(i).getLat();
+            allAddresses[i + 1] = binLocations.get(i).getLon() + "," + binLocations.get(i).getLat();
         }
 
         long[][] masterMatrix = new long[totalNodes][totalNodes];
@@ -109,4 +109,6 @@ public class DistanceMatrixService {
         }
     }
 }
+
+
 
