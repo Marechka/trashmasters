@@ -10,7 +10,7 @@ import java.util.List;
 @Service
 public class DistanceMatrixService {
 
-    @Value("${mapbox.api.token:}")
+    @Value("${mapbox.api.token}")
     private String apiToken;
 
     private final RestTemplate restTemplate;
@@ -18,15 +18,8 @@ public class DistanceMatrixService {
     // 12 Origins + 12 Destinations = 24 coordinates (safely under Mapbox's 25 limit)
     private static final int CHUNK_SIZE = 12;
 
-//    public DistanceMatrixService() {
-//        this.restTemplate = new RestTemplate();
-//    }
-
     public DistanceMatrixService() {
         this.restTemplate = new RestTemplate();
-        if (apiToken == null || apiToken.isEmpty()) {
-            System.err.println("⚠️ WARNING: MAPBOX_API_TOKEN not set. Distance matrix will fail.");
-        }
     }
 
     /**
@@ -109,6 +102,5 @@ public class DistanceMatrixService {
         }
     }
 }
-
 
 

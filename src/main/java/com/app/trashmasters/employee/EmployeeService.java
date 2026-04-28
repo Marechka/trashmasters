@@ -11,6 +11,6 @@ public interface EmployeeService {
     void deleteEmployee(String id);
     List<Employee> getAllDriversOnly();
 
-    Employee login(String employeeId, String password);
+    Employee login(String email, String password);
     void resetPassword(String employeeId, String newPassword);
 }

@@ -9,7 +9,6 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import java.time.Instant;
 import java.util.HashMap;
 import java.util.Map;
@@ -18,19 +17,19 @@ import java.util.UUID;
 
 @Service
 public class PasswordResetTokenService {
-    
+
     @Autowired
     private PasswordResetTokenRepository tokenRepository;
-    
+
     @Autowired
     private EmployeeRepository employeeRepository;
-    
+
     @Autowired
     private EmailService emailService;
-    
+
     @Autowired
     private PasswordEncoder passwordEncoder;
-    
+
     @Value("${app.reset.token.expiration}")
     private long tokenExpirationMs;
 
@@ -85,41 +84,41 @@ public class PasswordResetTokenService {
         return response;
     }
 
-    
+
     // Validate reset token
     public Optional<PasswordResetToken> validateToken(String token) {
         return tokenRepository.findByToken(token)
-            .filter(t -> !t.isUsed() && !t.isExpired());
+                .filter(t -> !t.isUsed() && !t.isExpired());
     }
-    
+
     // Reset password
     @Transactional
     public boolean resetPassword(String token, String newPassword) {
         Optional<PasswordResetToken> tokenOpt = validateToken(token);
-        
+
         if (tokenOpt.isEmpty()) {
             return false;
         }
-        
+
         PasswordResetToken resetToken = tokenOpt.get();
-        
+
         // Find employee
         Optional<Employee> employeeOpt = employeeRepository.findByEmployeeId(resetToken.getEmployeeId());
-        
+
         if (employeeOpt.isEmpty()) {
             return false;
         }
-        
+
         Employee employee = employeeOpt.get();
-        
+
         // Update password
         employee.setPassword(passwordEncoder.encode(newPassword));
         employeeRepository.save(employee);
-        
+
         // Mark token as used
         resetToken.setUsed(true);
         tokenRepository.save(resetToken);
-        
+
         return true;
     }
 }
